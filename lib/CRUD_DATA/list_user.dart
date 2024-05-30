@@ -147,7 +147,7 @@ class _ListUsersState extends State<ListUsers> {
                 margin: const EdgeInsets.all(10),
                 child: ListTile(
                   title: Text(
-                      "${documentSnapshot['first name']} ${documentSnapshot['last name']}"),
+                      "${documentSnapshot['first_name']} ${documentSnapshot['last_name']}"),
                   subtitle: Text(documentSnapshot['role'].toString()),
                   trailing: SizedBox(
                     width: 100,

@@ -20,58 +20,71 @@ class _SignUpState extends State<SignUp> {
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  Future signUp() async {
+  Future<void> signUp() async {
+    // Validate input fields
     if (_nameController.text.isEmpty ||
         _lastnameController.text.isEmpty ||
         _emailController.text.isEmpty ||
         _passwordController.text.isEmpty ||
         _roleController.text.isEmpty ||
         _numberController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text("Please fill in all fields"),
         backgroundColor: Colors.red, // Customize the color
       ));
       return; // Stop execution if any fields are empty
     }
-if (!_emailController.text.contains('@')) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+
+    // Validate email format
+    if (!_emailController.text.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text("L'adresse e-mail doit contenir un \"@\""),
         backgroundColor: Colors.red, // Customize the color
       ));
       return; // Stop execution if email format is incorrect
     }
+
     try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      // Create user with email and password
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      // Retrieve Firebase Messaging token
       final token = await FirebaseMessaging.instance.getToken();
+
+      // Prepare user data
       final user = <String, dynamic>{
+        "uid": userCredential.user?.uid,
         "first_name": _nameController.text.trim(),
         "last_name": _lastnameController.text.trim(),
         "number": _numberController.text.trim(),
         "role": _roleController.text.trim(),
-        "email":_emailController.text.trim(),
-        "token": token
+        "email": _emailController.text.trim(),
+        "token": token,
       };
 
+      // Save user data to Firestore using the UID as the document ID
       await FirebaseFirestore.instance
           .collection("users")
           .doc(userCredential.user?.uid)
           .set(user);
-     // Envoi de l'e-mail pour définir le mot de passe
+
+      // Send password reset email for the user to set their password
       sendResetPasswordEmail(_emailController.text.trim());
 
+      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text("Registered Successfully"),
         backgroundColor: Colors.green, // Customize the color
       ));
 
+      // Navigate to the list of users
       Navigator.of(context).pushReplacementNamed("ListUsers");
-    }  on FirebaseAuthException catch (e) {
-      print(
-          "Error creating user: ${e.message}"); // Use ${e.message} to access the error message
+    } on FirebaseAuthException catch (e) {
+      // Handle FirebaseAuthException
+      print("Error creating user: ${e.message}");
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text("Registration Failed: ${e.message}"),
@@ -79,16 +92,17 @@ if (!_emailController.text.contains('@')) {
       ));
     }
   }
- void sendResetPasswordEmail(String userEmail) {
-    FirebaseAuth.instance.sendPasswordResetEmail(email: userEmail)
-        .then((_) {
+
+
+  void sendResetPasswordEmail(String userEmail) {
+    FirebaseAuth.instance.sendPasswordResetEmail(email: userEmail).then((_) {
       print('E-mail de réinitialisation envoyé avec succès à $userEmail');
     }).catchError((error) {
-      print('Erreur lors de l\'envoi de l\'e-mail de réinitialisation : $error');
+      print(
+          'Erreur lors de l\'envoi de l\'e-mail de réinitialisation : $error');
     });
   }
-  
-  
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -141,15 +155,15 @@ if (!_emailController.text.contains('@')) {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-      leading: SizedBox(
+        leading: SizedBox(
           height: 10, // Spécifiez la hauteur souhaitée ici
           child: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
         ),
-      ),
       ),
       key: _scaffoldKey,
       backgroundColor: Color.fromARGB(255, 255, 255, 255),

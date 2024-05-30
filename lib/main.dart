@@ -10,7 +10,6 @@ import 'forgotpassword.dart'; // Assurez-vous que le fichier existe
 import 'profil_screen.dart'; // Assurez-vous que le fichier existe
 import 'firebase_options.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -32,8 +31,8 @@ void main() async {
     print('Permission granted: ${settings.authorizationStatus}');
   }
 
-   User? user = FirebaseAuth.instance.currentUser;
-   String? userUID = user?.uid;
+  User? user = FirebaseAuth.instance.currentUser;
+  String? userUID = user?.uid;
   CollectionReference users = FirebaseFirestore.instance.collection('users');
   CollectionReference enregi = FirebaseFirestore.instance.collection('enregi');
 
@@ -51,7 +50,7 @@ void main() async {
               var newCar = change.doc.data();
               String? token = await FirebaseMessaging.instance.getToken();
               if (newCar != null) {
-                  sendNotificationMessage(
+                sendNotificationMessage(
                   userToken: token,
                   title: 'Véhicule détecté',
                   content: 'Nouveau Véhicule détecté',
@@ -114,11 +113,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 44, 167, 167)  ,
+      backgroundColor: Color.fromARGB(255, 44, 167, 167),
       body: SafeArea(
         child: Container(
           width: double.infinity,
@@ -141,7 +139,7 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(
                     height: 20,
                   ),
-                 /* Text(
+                  /* Text(
                     "Parking Intellegent",
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -151,34 +149,36 @@ class _HomePageState extends State<HomePage> {
                   )*/
                 ],
               ),
-             
               Column(
                 children: <Widget>[
                   // Ajoutez le bouton de connexion
                   MaterialButton(
-  minWidth: double.infinity,
-  height: 60,
-  onPressed: () {
-    // Redirigez l'utilisateur vers la page de connexion
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
-  },
-  color: Colors.black, // Set button color to black
-  shape: RoundedRectangleBorder(
-    side: const BorderSide(color: Color.fromARGB(255, 255, 255, 255)),
-    borderRadius: BorderRadius.circular(50),
-  ),
-  child: const Text(
-    "Welcome",
-    style: TextStyle(
-      color: Colors.white, // Ensure the text color contrasts with the black button
-      fontWeight: FontWeight.w600,
-      fontSize: 18,
-    ),
-  ),
-),
+                    minWidth: double.infinity,
+                    height: 60,
+                    onPressed: () {
+                      // Redirigez l'utilisateur vers la page de connexion
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const LoginScreen()),
+                      );
+                    },
+                    color: Colors.black, // Set button color to black
+                    shape: RoundedRectangleBorder(
+                      side: const BorderSide(
+                          color: Color.fromARGB(255, 255, 255, 255)),
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    child: const Text(
+                      "Welcome",
+                      style: TextStyle(
+                        color: Colors
+                            .white, // Ensure the text color contrasts with the black button
+                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
                 ],
               )
             ],
@@ -190,12 +190,10 @@ class _HomePageState extends State<HomePage> {
 }
 
 class LoginScreen extends StatefulWidget {
-  
   const LoginScreen({Key? key}) : super(key: key);
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
-  
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -207,66 +205,66 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _errorMessage; // Message d'erreur
 
   Future<void> signIn() async {
-  if (_formKey.currentState!.validate()) {
-    try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+    if (_formKey.currentState!.validate()) {
+      try {
+        UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        );
 
-      if (userCredential.user != null) {
-        print("User UID: ${userCredential.user!.uid}");
+        if (userCredential.user != null) {
+          print("User UID: ${userCredential.user!.uid}");
 
-        // Retrieve user role from Firestore
-        DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userCredential.user!.uid)
-            .get();
+          // Retrieve user role from Firestore
+          DocumentSnapshot userSnapshot = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userCredential.user!.uid)
+              .get();
 
-        if (userSnapshot.exists) {
-          final userData = userSnapshot.data() as Map<String, dynamic>?;
-          final userRole = userData?['role'] as String?;
+          if (userSnapshot.exists) {
+            final userData = userSnapshot.data() as Map<String, dynamic>?;
+            final userRole = userData?['role'] as String?;
 
-          // Handle user role
-          redirectToPage(userRole);
+            // Handle user role
+            redirectToPage(userRole);
+          }
+        } else {
+          print("User not authenticated");
         }
-      } else {
-        print("User not authenticated");
+      } catch (e) {
+        // Handle sign-in errors
+        print("Sign-in error: $e");
+        setState(() {
+          _errorMessage =
+              "Erreur de connexion. Veuillez vérifier vos informations.";
+        });
       }
-    } catch (e) {
-      // Handle sign-in errors
-      print("Sign-in error: $e");
-      setState(() {
-        _errorMessage =
-            "Erreur de connexion. Veuillez vérifier vos informations.";
-      });
     }
   }
-}
 
-void redirectToPage(String? userRole) {
-  if (userRole == 'admin') {
-    // Redirect user to admin page
-    Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const ProfileScreen()),
-  ); // Replace with navigation logic
-  } else {
-    // Redirect user to regular user page
-    Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const ParkingDataPage()),
-  );// Replace with navigation logic
+  void redirectToPage(String? userRole) {
+    if (userRole == 'admin') {
+      // Redirect user to admin page
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ProfileScreen()),
+      ); // Replace with navigation logic
+    } else {
+      // Redirect user to regular user page
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ParkingDataPage()),
+      ); // Replace with navigation logic
+    }
   }
-}
 
-  
   @override
   void dispose() {
     super.dispose();
     _emailController.dispose();
     _passwordController.dispose();
   }
+
   String? emailValidator(String? value) {
     if (value == null || value.isEmpty) {
       return 'Veuillez entrer une adresse e-mail valide.';
@@ -290,7 +288,7 @@ void redirectToPage(String? userRole) {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 44, 167, 167)  ,
+      backgroundColor: Color.fromARGB(255, 44, 167, 167),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -326,7 +324,7 @@ void redirectToPage(String? userRole) {
                 decoration: const InputDecoration(
                   hintText: "User Email",
                   //prefix: Icon(Icons.mail, color: Colors.white),
-                  prefixIcon: Icon(Icons.lock,color: Colors.white),
+                  prefixIcon: Icon(Icons.lock, color: Colors.white),
                 ),
                 validator: emailValidator,
               ),
@@ -335,20 +333,20 @@ void redirectToPage(String? userRole) {
                 controller: _passwordController,
                 obscureText: passwordObscured,
                 decoration: InputDecoration(
-                  hintText: "User Password",
-                
-                  prefixIcon: const Icon(Icons.lock,color: Colors.white),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        passwordObscured =!passwordObscured;
-                      });
-                    }, 
-                    icon: Icon(
-                     passwordObscured ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.white,
-                  ))
-                ),
+                    hintText: "User Password",
+                    prefixIcon: const Icon(Icons.lock, color: Colors.white),
+                    suffixIcon: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            passwordObscured = !passwordObscured;
+                          });
+                        },
+                        icon: Icon(
+                          passwordObscured
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.white,
+                        ))),
                 validator: passwordValidator,
               ),
               const SizedBox(height: 12),
@@ -405,7 +403,6 @@ void redirectToPage(String? userRole) {
                   ),
                 ),
               ),
-              
             ],
           ),
         ),
